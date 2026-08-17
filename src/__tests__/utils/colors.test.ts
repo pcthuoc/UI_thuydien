@@ -1,0 +1,115 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import {
+  hexToColorName,
+  getColorName,
+  resolveSpoolColorName,
+  setColorCatalog,
+  __resetColorCatalogForTests,
+} from '../../utils/colors';
+
+describe('hexToColorName', () => {
+  it('returns "Unknown" for null/empty input', () => {
+    expect(hexToColorName(null)).toBe('Unknown');
+    expect(hexToColorName('')).toBe('Unknown');
+    expect(hexToColorName(undefined)).toBe('Unknown');
+  });
+
+  it('classifies dark low-saturation colors as Dark Gray', () => {
+    // Titan Gray hex (5F6367) — low saturation, lightness < 0.4
+    expect(hexToColorName('5F6367')).toBe('Dark Gray');
+  });
+
+  it('classifies black hex as Black', () => {
+    expect(hexToColorName('000000')).toBe('Black');
+  });
+
+  it('classifies white hex as White', () => {
+    expect(hexToColorName('FFFFFF')).toBe('White');
+  });
+
+  // #1545: transparent filament is reported as `00000000` (alpha=00).
+  // Without the alpha-aware short-circuit it would fall through to the HSL
+  // bucketing and resolve to "Black" because the RGB happens to be 000000.
+  it('classifies any alpha=00 rgba as Clear', () => {
+    expect(hexToColorName('00000000')).toBe('Clear');
+    expect(hexToColorName('FF000000')).toBe('Clear');
+    expect(hexToColorName('#abcdef00')).toBe('Clear');
+  });
+
+  it('still classifies fully opaque colors via HSL even when alpha is FF', () => {
+    expect(hexToColorName('000000FF')).toBe('Black');
+    expect(hexToColorName('FFFFFFFF')).toBe('White');
+  });
+});
+
+describe('getColorName', () => {
+  beforeEach(() => {
+    __resetColorCatalogForTests();
+  });
+
+  it('looks up the runtime color catalog before HSL fallback', () => {
+    setColorCatalog({ '5f6367': 'Titan Gray' });
+    expect(getColorName('5f6367')).toBe('Titan Gray');
+    expect(getColorName('5F6367')).toBe('Titan Gray');
+  });
+
+  it('falls back to HSL when hex is not in the runtime catalog', () => {
+    // No catalog entry for 123456; HSL bucketing puts it in Blue.
+    expect(getColorName('123456')).toBe('Blue');
+  });
+
+  it('returns "Unknown" for empty string', () => {
+    expect(getColorName('')).toBe('Unknown');
+  });
+
+  it('handles hex with # prefix', () => {
+    setColorCatalog({ '5f6367': 'Titan Gray' });
+    expect(getColorName('#5f6367')).toBe('Titan Gray');
+  });
+
+  it('normalizes catalog keys (strips # and lowercases)', () => {
+    // Provider can pass keys in any case / with or without '#'; the utility
+    // must normalize so lookups succeed regardless of input shape.
+    setColorCatalog({ '#F5B6CD': 'Cherry Pink' });
+    expect(getColorName('F5B6CD')).toBe('Cherry Pink');
+    expect(getColorName('f5b6cd')).toBe('Cherry Pink');
+  });
+
+  it('resolves #857 regression — A17-R1 / F5B6CD is Cherry Pink, not Scarlet Red', () => {
+    setColorCatalog({ 'f5b6cd': 'Cherry Pink' });
+    expect(getColorName('F5B6CDFF')).toBe('Cherry Pink');
+  });
+
+  // #1545: alpha=00 must short-circuit catalog lookup too — otherwise a
+  // catalog entry on the underlying RGB would mislabel transparent filament.
+  it('returns Clear for transparent rgba regardless of catalog entry', () => {
+    setColorCatalog({ '000000': 'Inky Night' });
+    expect(getColorName('00000000')).toBe('Clear');
+    expect(getColorName('000000FF')).toBe('Inky Night');
+  });
+});
+
+describe('resolveSpoolColorName', () => {
+  beforeEach(() => {
+    __resetColorCatalogForTests();
+    setColorCatalog({ '5f6367': 'Titan Gray' });
+  });
+
+  it('returns readable color name directly', () => {
+    expect(resolveSpoolColorName('Titan Gray', '5F6367FF')).toBe('Titan Gray');
+  });
+
+  it('looks up hex when color_name is a Bambu code', () => {
+    expect(resolveSpoolColorName('A06-D0', '5F6367FF')).toBe('Titan Gray');
+  });
+
+  it('returns null when color_name is a code and hex is unknown', () => {
+    // Opaque, not in catalog — must not be misread as transparent (#1545).
+    expect(resolveSpoolColorName('A99-Z9', '123456FF')).toBeNull();
+  });
+
+  // #1545
+  it('returns Clear for transparent rgba even when color_name is a code', () => {
+    expect(resolveSpoolColorName('A99-Z9', '00000000')).toBe('Clear');
+  });
+});
