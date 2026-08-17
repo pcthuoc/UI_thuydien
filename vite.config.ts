@@ -84,9 +84,6 @@ export default defineConfig({
   // audience uses NPM + Cloudflare Tunnel at a real domain per the
   // documented workaround, which doesn't depend on this setting.
   plugins: [react(), serveGcodeViewer()],
-  optimizeDeps: {
-    exclude: ['maplibre-gl'],
-  },
   build: {
     outDir: '../static',
     emptyOutDir: true,

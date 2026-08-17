@@ -102,7 +102,7 @@ const DISPATCH_PRESETS: PresetTemplate[] = [
       { id: '4', time_start: '11:30', time_end: '17:00', tariff: 'normal', units: { '1': 1.6, '2': 1.6 } },
       { id: '5', time_start: '17:00', time_end: '20:00', tariff: 'peak', units: { '1': 2.5, '2': 2.5 } },
       { id: '6', time_start: '20:00', time_end: '22:00', tariff: 'normal', units: { '1': 1.8, '2': 1.8 } },
-      { id: '7', time_start: '22:00', time_end: '24:00', tariff: 'offpeak', units: { '1': 0.8, '2': 0.8 } },
+      { id: '7', time_start: '22:00', time_end: '23:59', tariff: 'offpeak', units: { '1': 0.8, '2': 0.8 } },
     ],
   },
   {
@@ -114,7 +114,7 @@ const DISPATCH_PRESETS: PresetTemplate[] = [
     rows: [
       { id: '1', time_start: '00:00', time_end: '08:00', tariff: 'offpeak', units: { '1': 2.0, '2': 2.0 } },
       { id: '2', time_start: '08:00', time_end: '16:00', tariff: 'normal', units: { '1': 2.0, '2': 2.0 } },
-      { id: '3', time_start: '16:00', time_end: '24:00', tariff: 'peak', units: { '1': 2.0, '2': 2.0 } },
+      { id: '3', time_start: '16:00', time_end: '23:59', tariff: 'peak', units: { '1': 2.0, '2': 2.0 } },
     ],
   },
   {
@@ -125,7 +125,7 @@ const DISPATCH_PRESETS: PresetTemplate[] = [
     color: 'from-rose-500/20 to-rose-600/20 border-rose-500/30 text-rose-600 dark:text-rose-400',
     rows: [
       { id: '1', time_start: '00:00', time_end: '12:00', tariff: 'normal', units: { '1': 2.5, '2': 2.5 } },
-      { id: '2', time_start: '12:00', time_end: '24:00', tariff: 'peak', units: { '1': 2.5, '2': 2.5 } },
+      { id: '2', time_start: '12:00', time_end: '23:59', tariff: 'peak', units: { '1': 2.5, '2': 2.5 } },
     ],
   },
 ];
